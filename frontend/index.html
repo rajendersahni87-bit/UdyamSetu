@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UdyamSetu | Scheme Navigator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet OpenStreetMap CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    :root { --ink:#15261f; --muted:#607168; --bg:#f6f7f2; --card:#fff; --green:#087c5b; --lime:#d9f56d; --orange:#ffb55c; --line:#dce4dc; --soft:#e8f2ea; }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif} button,input,select{font:inherit}
+    .nav{height:76px;padding:0 max(5vw,28px);display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid var(--line)}
+    .brand{font:700 25px Outfit,sans-serif;letter-spacing:-1px}.brand span{color:var(--green)} .tag{font-size:13px;color:var(--muted);border-left:1px solid var(--line);margin-left:14px;padding-left:14px}
+    .nav-left{display:flex;align-items:center}.nav-right{display:flex;gap:10px;align-items:center}
+    .lang,.voice-btn{border:1px solid var(--line);background:white;border-radius:9px;padding:9px 12px;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px}
+    .voice-btn.active{background:var(--lime);border-color:var(--green)}
+    .hero{background:var(--ink);color:white;padding:58px max(5vw,28px) 64px;position:relative;overflow:hidden}.hero:after{content:'';position:absolute;width:440px;height:440px;border:80px solid var(--green);border-radius:50%;right:-160px;top:-210px;opacity:.65}
+    .hero-inner{max-width:780px;position:relative;z-index:1}.eyebrow{color:var(--lime);font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:12px}.hero h1{font:600 clamp(34px,5vw,58px)/1.04 Outfit,sans-serif;letter-spacing:-2px;margin:12px 0 17px}.hero p{font-size:18px;line-height:1.55;color:#d1ddd5;margin:0;max-width:640px}
+    .wrap{max-width:1180px;margin:-25px auto 0;padding:0 28px 60px;position:relative}.progress{display:flex;background:#fff;border-radius:14px;padding:16px 22px;box-shadow:0 8px 24px #17382b14;gap:26px;align-items:center}.step{font-size:13px;color:#91a198;display:flex;gap:8px;align-items:center;cursor:pointer}.step b{height:25px;width:25px;display:grid;place-items:center;border-radius:50%;background:#edf1ed;color:#698077}.step.active{color:var(--ink);font-weight:600}.step.active b{background:var(--green);color:white}
+    .grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.8fr);gap:25px;margin-top:28px}.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:29px}.panel h2{font:600 24px Outfit,sans-serif;margin:0 0 6px}.sub{margin:0 0 25px;color:var(--muted);font-size:14px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:17px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1} label{font-weight:600;font-size:13px} input,select{border:1px solid #ccd8ce;border-radius:9px;padding:12px;background:#fff;color:var(--ink);outline:none} input:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px #087c5b18}.hint{font-size:12px;color:var(--muted)}
+    .btn{border:0;border-radius:10px;padding:14px 20px;font-weight:700;cursor:pointer;transition:.2s}.btn.primary{background:var(--green);color:white;margin-top:25px;width:100%}.btn.primary:hover{background:#056648;transform:translateY(-1px)}
+    .side{display:flex;flex-direction:column;gap:18px}.help{background:var(--soft);border-radius:16px;padding:25px}.help .icon{font-size:29px}.help h3{font:600 19px Outfit,sans-serif;margin:10px 0 7px}.help p{color:var(--muted);font-size:14px;line-height:1.5;margin:0}.checks{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px}.checks h3{margin:0 0 13px;font:600 16px Outfit}.checks p{font-size:13px;margin:10px 0;color:var(--muted)}.dot{color:var(--green);font-weight:bold;margin-right:7px}
+    #results{display:none;margin-top:28px}.result-head{display:flex;align-items:end;justify-content:space-between;margin-bottom:14px}.result-head h2{font:600 28px Outfit;margin:0}.result-head p{margin:0;color:var(--muted);font-size:14px}.schemes{display:grid;gap:15px}.scheme{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;display:grid;grid-template-columns:auto 1fr auto;gap:17px;align-items:start}.score{background:var(--soft);color:var(--green);font:700 14px Outfit;border-radius:10px;padding:11px 9px;text-align:center;min-width:64px}.score small{display:block;font:500 10px DM Sans;text-transform:uppercase;letter-spacing:.5px}.scheme h3{font:600 19px Outfit;margin:0 0 5px}.scheme p{color:var(--muted);font-size:13px;line-height:1.45;margin:0}.pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.pill{font-size:11px;background:#f0f4f0;color:#456054;border-radius:20px;padding:5px 8px}.view{border:1px solid var(--green);background:white;color:var(--green);padding:9px 11px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer}
+    .detail{display:none;background:#fff;border:1px solid var(--line);border-radius:16px;padding:25px;margin-top:17px}.detail.show{display:block}.detail-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:24px}.detail h3{font:600 21px Outfit;margin:0 0 9px}.why{background:#f8fbf7;border-left:4px solid var(--lime);padding:13px 15px;font-size:14px;line-height:1.5}.table{margin-top:16px;border-top:1px solid var(--line)}.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.row span:last-child{font-weight:700}.partner{padding:15px;border:1px solid var(--line);border-radius:11px;margin-bottom:10px}.partner b{display:block;font-size:14px}.partner span{font-size:12px;color:var(--muted);display:block;margin-top:4px}
+    .docs-section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:25px;margin-top:25px}.docs-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:15px}.doc-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8fbf7;border-radius:8px;font-size:13px;border:1px solid var(--line)}
+    .docs-btn-group{display:flex;gap:8px;align-items:center}
+    .tool-section{margin-top:32px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:29px}.tool-title{display:flex;align-items:start;justify-content:space-between;gap:18px;margin-bottom:22px}.tool-title h2{font:600 24px Outfit,sans-serif;margin:0 0 6px}.tool-title p{margin:0;color:var(--muted);font-size:14px;line-height:1.45}.tool-badge{background:var(--soft);color:var(--green);font-size:12px;font-weight:700;padding:7px 10px;border-radius:20px;white-space:nowrap}.calculator{display:grid;grid-template-columns:1fr .95fr;gap:30px;align-items:center}.range-field{margin:19px 0}.range-label{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:9px}.range-label output{color:var(--green);font-size:15px}input[type=range]{width:100%;accent-color:var(--green);padding:0}.calc-result{background:var(--ink);color:white;border-radius:14px;padding:25px}.calc-result small{color:#b6c8bd;font-size:12px}.emi{font:600 38px Outfit;margin:7px 0 19px;color:var(--lime)}.calc-line{display:flex;justify-content:space-between;border-top:1px solid #ffffff24;padding-top:12px;margin-top:12px;font-size:13px}.calc-line span:last-child{font-weight:700}.router{display:grid;grid-template-columns:.9fr 1.1fr;gap:24px}.route-controls{display:flex;flex-direction:column;gap:13px}.route-list{display:grid;gap:10px;margin-top:16px}.route-card{border:1px solid var(--line);border-radius:11px;padding:13px;cursor:pointer;transition:.15s}.route-card:hover,.route-card.selected{border-color:var(--green);background:#f6fbf7}.route-card b{display:block;font-size:14px}.route-card span{font-size:12px;color:var(--muted);display:block;margin-top:3px}
+    #mapContainer{height:320px;width:100%;border-radius:14px;z-index:1}.route-status{background:var(--soft);color:#2e5945;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.4;margin-top:12px}
+    .footer{text-align:center;color:var(--muted);font-size:12px;padding-top:40px}.disclaimer{font-size:12px;color:#74847b;margin-top:16px}
+    @media(max-width:760px){.tag{display:none}.grid,.detail-grid,.calculator,.router,.docs-grid{grid-template-columns:1fr}.fields{grid-template-columns:1fr}.progress{gap:10px;padding:13px}.step{font-size:11px}.scheme{grid-template-columns:auto 1fr}.view{grid-column:2;justify-self:start}.hero{padding-top:44px}.wrap{padding:0 16px}.nav{padding:0 16px}.tool-title{flex-direction:column}.docs-btn-group{flex-direction:column;align-items:stretch}}
+    @media print { body * { visibility: hidden; } #docsSection, #docsSection * { visibility: visible; } #docsSection { position: absolute; left: 0; top: 0; width: 100%; } }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-left">
+      <div class="brand">Udyam<span>Setu</span></div>
+      <div class="tag" id="t-tag">Entrepreneur Scheme Navigator</div>
+    </div>
+    <div class="nav-right">
+      <button class="voice-btn" id="voiceToggle" onclick="toggleVoice()"><span id="v-icon">🔊</span> <span id="v-txt">Read Aloud</span></button>
+      <select class="lang" id="langSelect" aria-label="Language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="mr">मराठी</option>
+      </select>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow" id="t-eyebrow">Hii Entrepreneur 👋</div>
+      <h1 id="t-title">The right support should find the right dream.</h1>
+      <p id="t-sub">Discover government schemes designed for your enterprise, understand the loan clearly, and connect with an eligible local partner.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="progress">
+      <div class="step active" id="step1" onclick="navigateToStep(1)"><b id="s1-num">1</b><span id="t-s1">Tell us about you</span></div>
+      <div class="step" id="step2" onclick="navigateToStep(2)"><b>2</b><span id="t-s2">Find eligible schemes</span></div>
+      <div class="step" id="step3" onclick="navigateToStep(3)"><b>3</b><span id="t-s3">Connect locally</span></div>
+    </div>
+
+    <section class="grid" id="form-section">
+      <div class="panel">
+        <h2 id="t-p-title">Build your entrepreneur profile</h2>
+        <p class="sub" id="t-p-sub">Answer a few simple questions. Your answers remain private and you will always see why a scheme is recommended.</p>
+        
+        <form id="profileForm">
+          <div class="fields">
+            <div class="field"><label for="category" id="t-l-cat">Social category</label><select id="category"><option value="sc">Scheduled Caste (SC)</option><option value="obc">Other Backward Class (OBC)</option><option value="safai">Safai Karamchari</option><option value="other">Other / Prefer not to say</option></select></div>
+            <div class="field"><label for="age" id="t-l-age">Your age</label><input id="age" type="number" min="18" max="70" value="28" /></div>
+            <div class="field"><label for="business" id="t-l-biz">Business area</label><select id="business"><option value="service">Services / Retail</option><option value="manufacturing">Manufacturing</option><option value="agri">Agriculture allied</option><option value="artisan">Artisan / Craft</option></select></div>
+            <div class="field"><label for="stage" id="t-l-stage">Business stage</label><select id="stage"><option value="new">Starting a new business</option><option value="existing">Growing an existing business</option></select></div>
+            <div class="field"><label for="income" id="t-l-inc">Annual family income</label><select id="income"><option value="low">Up to ₹3 lakh</option><option value="mid">₹3–8 lakh</option><option value="high">Above ₹8 lakh</option></select></div>
+            <div class="field"><label for="amount" id="t-l-amt">Funding required</label><input id="amount" type="number" min="10000" step="10000" value="500000" /><span class="hint" id="t-h-amt">Enter amount in rupees</span></div>
+            <div class="field full"><label for="location" id="t-l-loc">Location / PIN code</label><input id="location" value="Pune, Maharashtra – 411001" /></div>
+          </div>
+          <button class="btn primary" id="t-btn-find" type="submit">Find my eligible schemes →</button>
+        </form>
+      </div>
+
+      <aside class="side">
+        <div class="help"><div class="icon">✦</div><h3 id="t-h-recs">Clear recommendations</h3><p id="t-p-recs">Each result shows eligibility evidence, typical terms, repayment estimate, and the right next step—no black-box scoring.</p></div>
+        <div class="checks"><h3 id="t-h-chk">What we check</h3><p><span class="dot">✓</span><span id="t-c1">Category and age requirements</span></p><p><span class="dot">✓</span><span id="t-c2">Business purpose and loan amount</span></p><p><span class="dot">✓</span><span id="t-c3">Income and business stage</span></p><p><span class="dot">✓</span><span id="t-c4">Authorised local channel partners</span></p></div>
+      </aside>
+    </section>
+
+    <section id="results">
+      <div class="result-head">
+        <div><h2 id="t-res-title">Your matching opportunities</h2><p id="summary">Based on your submitted profile</p></div>
+        <button class="view" onclick="navigateToStep(1)">Edit profile</button>
+      </div>
+      <div class="schemes" id="schemeList"></div>
+      <div class="detail" id="detail"></div>
+
+      <!-- Automated Document Checklist Section with Download & Print buttons -->
+      <div class="docs-section" id="docsSection">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <h3 style="font:600 20px Outfit;margin:0;">📄 Required Application Documents</h3>
+          <div class="docs-btn-group">
+            <button class="view" onclick="downloadDocChecklist()">📥 Download Text Checklist</button>
+            <button class="view" onclick="window.print()">🖨️ Export PDF Checklist</button>
+          </div>
+        </div>
+        <div class="docs-grid" id="docsGrid"></div>
+      </div>
+
+      <p class="disclaimer">Prototype data. Final eligibility, interest rate and partner availability are determined by the respective scheme authority.</p>
+    </section>
+
+    <section class="tool-section" id="calculator">
+      <div class="tool-title">
+        <div><h2 id="t-calc-title">Financial Calculator</h2><p id="t-calc-sub">Plan your loan before you apply. Adjust the amount, rate and tenure to understand your monthly repayment.</p></div>
+        <span class="tool-badge">Independent tool</span>
+      </div>
+      <div class="calculator">
+        <div>
+          <div class="range-field"><div class="range-label"><span>Loan amount</span><output id="loanOut">₹5,00,000</output></div><input id="loanRange" type="range" min="50000" max="3000000" step="50000" value="500000"></div>
+          <div class="range-field"><div class="range-label"><span>Annual interest rate</span><output id="rateOut">6.0%</output></div><input id="rateRange" type="range" min="3" max="15" step="0.5" value="6"></div>
+          <div class="range-field"><div class="range-label"><span>Repayment tenure</span><output id="tenureOut">5 years</output></div><input id="tenureRange" type="range" min="1" max="10" step="1" value="5"></div>
+        </div>
+        <div class="calc-result">
+          <small>Estimated monthly instalment</small><div class="emi" id="emiOut">₹9,666</div>
+          <div class="calc-line"><span>Total interest payable</span><span id="interestOut">₹79,960</span></div>
+          <div class="calc-line"><span>Total repayment</span><span id="totalOut">₹5,79,960</span></div>
+          <p class="disclaimer" style="color:#b6c8bd">Indicative only. Actual interest, tenure and moratorium are decided by the lender.</p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="tool-section" id="locator">
+      <div class="tool-title">
+        <div><h2 id="t-loc-title">Geo-Spatial Partner Locator & Router</h2><p id="t-loc-sub">Find nearby authorised lending and facilitation partners, prioritised by scheme compatibility, distance and availability.</p></div>
+        <span class="tool-badge">Live GPS Routing</span>
+      </div>
+      <div class="router">
+        <div class="route-controls">
+          <div class="field"><label for="routeScheme">Select scheme</label><select id="routeScheme"><option value="NSFDC Term Loan">NSFDC Term Loan</option><option value="NBCFDC General Loan">NBCFDC General Loan</option><option value="NSKFDC Business Loan">NSKFDC Business Loan</option><option value="PMEGP Margin Money Support">PMEGP Margin Money Support</option></select></div>
+          <div class="field"><label for="routeLocation">Your location / PIN code</label><input id="routeLocation" value="Pune, Maharashtra – 411001"></div>
+          <button class="btn primary" style="margin-top:0" onclick="findPartners()">Find authorised partners</button>
+          <div class="route-list" id="routeList"></div>
+        </div>
+        <div>
+          <!-- Leaflet Live Map -->
+          <div id="mapContainer"></div>
+          <div class="route-status" id="routeStatus"><b>Best route:</b> Select a partner above to locate on live map.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">UdyamSetu • Making public support easier to access, understand, and use.</div>
+  </main>
+
+  <!-- Leaflet JS Library -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Translations Dictionary
+const translations = {
+  en: {
+    tag: "Entrepreneur Scheme Navigator", eyebrow: "Hii Entrepreneur 👋", title: "The right support should find the right dream.",
+    sub: "Discover government schemes designed for your enterprise, understand the loan clearly, and connect with an eligible local partner.",
+    s1: "Tell us about you", s2: "Find eligible schemes", s3: "Connect locally",
+    pTitle: "Build your entrepreneur profile", pSub: "Answer a few simple questions. Your answers remain private and you will always see why a scheme is recommended.",
+    lCat: "Social category", lAge: "Your age", lBiz: "Business area", lStage: "Business stage", lInc: "Annual family income", lAmt: "Funding required", hAmt: "Enter amount in rupees", lLoc: "Location / PIN code",
+    btnFind: "Find my eligible schemes →", hRecs: "Clear recommendations", pRecs: "Each result shows eligibility evidence, typical terms, repayment estimate, and the right next step—no black-box scoring.",
+    hChk: "What we check", c1: "Category and age requirements", c2: "Business purpose and loan amount", c3: "Income and business stage", c4: "Authorised local channel partners",
+    resTitle: "Your matching opportunities", calcTitle: "Financial Calculator", calcSub: "Plan your loan before you apply. Adjust the amount, rate and tenure to understand your monthly repayment.",
+    locTitle: "Geo-Spatial Partner Locator & Router", locSub: "Find nearby authorised lending and facilitation partners, prioritised by scheme compatibility, distance and availability."
+  },
+  hi: {
+    tag: "उद्यमी योजना नेविगेटर", eyebrow: "नमस्ते उद्यमी 👋", title: "सही सहायता को सही सपने तक पहुँचना चाहिए।",
+    sub: "अपने उद्यम के लिए डिज़ाइन की गई सरकारी योजनाओं की खोज करें, ऋण को स्पष्ट रूप से समझें और निकटतम अधिकृत भागीदार से जुड़ें।",
+    s1: "अपने बारे में बताएं", s2: "पात्र योजनाएं खोजें", s3: "स्थानीय स्तर पर जुड़ें",
+    pTitle: "अपना उद्यमी प्रोफ़ाइल बनाएं", pSub: "कुछ सरल प्रश्नों के उत्तर दें। आपके उत्तर निजी रहते हैं और आप हमेशा देख सकते हैं कि किसी योजना की अनुशंसा क्यों की गई है।",
+    lCat: "सामाजिक वर्ग", lAge: "आपकी आयु", lBiz: "व्यवसाय क्षेत्र", lStage: "व्यवसाय का चरण", lInc: "वार्षिक पारिवारिक आय", lAmt: "आवश्यक धनराशि", hAmt: "रुपये में राशि दर्ज करें", lLoc: "स्थान / पिन कोड",
+    btnFind: "मेरी पात्र योजनाएं खोजें →", hRecs: "स्पष्ट अनुशंसाएं", pRecs: "प्रत्येक परिणाम पात्रता साक्ष्य, विशिष्ट शर्तें, पुनर्भुगतान अनुमान और अगला सही कदम दिखाता है।",
+    hChk: "हम क्या जांचते हैं", c1: "श्रेणी और आयु की आवश्यकताएं", c2: "व्यवसाय का उद्देश्य और ऋण राशि", c3: "आय और व्यवसाय का चरण", c4: "अधिकृत स्थानीय चैनल भागीदार",
+    resTitle: "आपके मेल खाने वाले अवसर", calcTitle: "वित्तीय कैलकुलेटर", calcSub: "आवेदन करने से पहले अपने ऋण की योजना बनाएं। अपनी मासिक किश्त समझने के लिए राशि, दर और अवधि को समायोजित करें।",
+    locTitle: "जियो-स्पेशियल पार्टनर लोकेटर और राउटर", locSub: "योजना की अनुकूलता, दूरी और उपलब्धता के आधार पर नजदीकी अधिकृत ऋण और सुविधा भागीदारों को खोजें।"
+  },
+  mr: {
+    tag: "उद्योजक योजना नेव्हिगेटर", eyebrow: "नमस्कार उद्योजक 👋", title: "योग्य आधाराने योग्य स्वप्न शोधले पाहिजे.",
+    sub: "तुमच्या उद्योगासाठी तयार केलेल्या सरकारी योजना शोधा, कर्जाची माहिती स्पष्टपणे समजून घ्या आणि पात्र स्थानिक भागीदाराशी जोडा.",
+    s1: "तुमच्याबद्दल सांगा", s2: "पात्र योजना शोधा", s3: "स्थानिक पातळीवर जोडा",
+    pTitle: "तुमचे उद्योजक प्रोफाईल तयार करा", pSub: "काही सोप्या प्रश्नांची उत्तरे द्या. तुमची उत्तरे खाजगी राहतात आणि एखाद्या योजनेची शिफारस का केली आहे हे तुम्ही नेहमी पाहू शकता.",
+    lCat: "सामाजिक वर्ग", lAge: "तुमचे वय", lBiz: "व्यवसाय क्षेत्र", lStage: "व्यवसाय टप्पा", lInc: "वार्षिक कौटुंबिक उत्पन्न", lAmt: "आवश्यक निधी", hAmt: "रुपयांमध्ये रक्कम प्रविष्ट करा", lLoc: "स्थान / पिन कोड",
+    btnFind: "माझ्या पात्र योजना शोधा →", hRecs: "स्पष्ट शिफारसी", pRecs: "प्रत्येक निकाल पात्रता पुरावा, नियत अटी, परतफेडीचा अंदाज आणि पुढील योग्य पायरी दाखवतो.",
+    hChk: "आम्ही काय तपासतो", c1: "वर्ग आणि वयाची आवश्यकता", c2: "व्यवसाय उद्देश आणि कर्ज रक्कम", c3: "उत्पन्न आणि व्यवसाय टप्पा", c4: "अधिकृत स्थानिक चॅनेल भागीदार",
+    resTitle: "तुमच्यासाठी जुळणाऱ्या संधी", calcTitle: "आर्थिक कॅल्क्युलेटर", calcSub: "अर्ज करण्यापूर्वी तुमच्या कर्जाचे नियोजन करा. तुमचा मासिक हप्ता समजून घेण्यासाठी रक्कम, दर आणि कालावधी समायोजित करा.",
+    locTitle: "जिओ-स्पेशिअल पार्टनर लोकेटर आणि राउटर", locSub: "योजना सुसंगतता, अंतर आणि उपलब्धतेनुसार जवळच्या अधिकृत कर्ज आणि सुलभ भागीदारांचा शोध घ्या."
+  }
+};
+
+let activeSpeech = null;
+function toggleVoice() {
+  const btn = document.getElementById('voiceToggle');
+  if ('speechSynthesis' in window) {
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+      btn.classList.remove('active');
+      document.getElementById('v-txt').textContent = "Read Aloud";
+    } else {
+      const textToRead = `${document.getElementById('t-title').textContent}. ${document.getElementById('t-sub').textContent}`;
+      activeSpeech = new SpeechSynthesisUtterance(textToRead);
+      const langMap = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN' };
+      activeSpeech.lang = langMap[document.getElementById('langSelect').value] || 'en-IN';
+      activeSpeech.onend = () => { btn.classList.remove('active'); document.getElementById('v-txt').textContent = "Read Aloud"; };
+      speechSynthesis.speak(activeSpeech);
+      btn.classList.add('active');
+      document.getElementById('v-txt').textContent = "Speaking...";
+    }
+  } else {
+    alert("Voice synthesis is not supported on your browser.");
+  }
+}
+
+// Language Switch Event
+document.getElementById('langSelect').addEventListener('change', (e) => {
+  const lang = e.target.value;
+  const t = translations[lang];
+  document.getElementById('t-tag').textContent = t.tag;
+  document.getElementById('t-eyebrow').textContent = t.eyebrow;
+  document.getElementById('t-title').textContent = t.title;
+  document.getElementById('t-sub').textContent = t.sub;
+  document.getElementById('t-s1').textContent = t.s1;
+  document.getElementById('t-s2').textContent = t.s2;
+  document.getElementById('t-s3').textContent = t.s3;
+  document.getElementById('t-p-title').textContent = t.pTitle;
+  document.getElementById('t-p-sub').textContent = t.pSub;
+  document.getElementById('t-l-cat').textContent = t.lCat;
+  document.getElementById('t-l-age').textContent = t.lAge;
+  document.getElementById('t-l-biz').textContent = t.lBiz;
+  document.getElementById('t-l-stage').textContent = t.lStage;
+  document.getElementById('t-l-inc').textContent = t.lInc;
+  document.getElementById('t-l-amt').textContent = t.lAmt;
+  document.getElementById('t-h-amt').textContent = t.hAmt;
+  document.getElementById('t-l-loc').textContent = t.lLoc;
+  document.getElementById('t-btn-find').textContent = t.btnFind;
+  document.getElementById('t-h-recs').textContent = t.hRecs;
+  document.getElementById('t-p-recs').textContent = t.pRecs;
+  document.getElementById('t-h-chk').textContent = t.hChk;
+  document.getElementById('t-c1').textContent = t.c1;
+  document.getElementById('t-c2').textContent = t.c2;
+  document.getElementById('t-c3').textContent = t.c3;
+  document.getElementById('t-c4').textContent = t.c4;
+  document.getElementById('t-res-title').textContent = t.resTitle;
+  document.getElementById('t-calc-title').textContent = t.calcTitle;
+  document.getElementById('t-calc-sub').textContent = t.calcSub;
+  document.getElementById('t-loc-title').textContent = t.locTitle;
+  document.getElementById('t-loc-sub').textContent = t.locSub;
+});
+
+// Stepper Navigation
+function navigateToStep(stepNum) {
+  document.querySelectorAll('.step').forEach((el, index) => {
+    if (index + 1 === stepNum) el.classList.add('active');
+    else el.classList.remove('active');
+  });
+
+  if (stepNum === 1) document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+  else if (stepNum === 2) {
+    const results = document.getElementById('results');
+    if (results.style.display !== 'block') document.getElementById('profileForm').dispatchEvent(new Event('submit'));
+    results.scrollIntoView({ behavior: 'smooth' });
+  } else if (stepNum === 3) document.getElementById('locator').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Helpers
+const money = n => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+function emi(principal, annual, months) { let r = annual / 12 / 100; return r === 0 ? principal / months : principal * r * Math.pow(1 + r, months) / (Math.pow(1 + r, months) - 1); }
+
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const locationVal = document.getElementById('location').value;
+  
+  // Sync Profile location into Geocoder Input
+  document.getElementById('routeLocation').value = locationVal;
+
+  const payload = {
+    category: document.getElementById('category').value,
+    age: parseInt(document.getElementById('age').value),
+    business: document.getElementById('business').value,
+    stage: document.getElementById('stage').value,
+    income: document.getElementById('income').value,
+    amount: parseFloat(document.getElementById('amount').value),
+    location: locationVal
+  };
+
+  try {
+    const res = await fetch('http://localhost:8000/api/match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      renderBackendResults(data.matches, payload);
+      findPartners(); // Sync Map dynamically
+      return;
+    }
+  } catch (err) {
+    console.warn("Backend offline. Executing dynamic client-side engine.", err);
+  }
+
+  renderResults(payload);
+  findPartners(); // Sync Map dynamically
+});
+
+function renderBackendResults(matches, profile) {
+  document.getElementById('summary').textContent = `Showing options for ${profile.stage === 'new' ? 'a new venture' : 'business growth'} in ${profile.location.split(',')[0]}.`;
+  document.getElementById('schemeList').innerHTML = matches.map(item => {
+    const s = item.scheme;
+    return `<article class="scheme">
+      <div class="score">${item.match_score}%<small>match</small></div>
+      <div>
+        <h3>${s.name}</h3>
+        <p>${s.description || s.desc}</p>
+        <div class="pills">
+          ${(s.tags || []).map(t => `<span class="pill">${t}</span>`).join('')}
+          <span class="pill">Up to ${money(s.max_amount || s.max)}</span>
+        </div>
+      </div>
+      <button class="view" onclick="showDetail('${s.scheme_id || s.id}')">See why it fits</button>
+    </article>`;
+  }).join('');
+  
+  window.current = { profile, eligible: matches.map(m => m.scheme) };
+  document.getElementById('results').style.display = 'block';
+  generateDocumentChecklist(profile);
+  navigateToStep(2);
+}
+
+function renderResults(profile) {
+  const fallbackSchemes = [
+    {id:'nsf',name:'NSFDC Term Loan',cats:['sc'],max:3000000,rate:'4–6% p.a.',moratorium:'Up to 6 months',desc:'Concessional finance for viable income-generating activities by Scheduled Caste entrepreneurs.',tags:['SC entrepreneurs','New or existing unit']},
+    {id:'nbc',name:'NBCFDC General Loan',cats:['obc'],max:1500000,rate:'5–8% p.a.',moratorium:'Up to 6 months',desc:'Financial assistance for self-employment and small enterprise development for eligible OBC beneficiaries.',tags:['OBC entrepreneurs','Income-linked']},
+    {id:'pmegp',name:'PMEGP Margin Money Support',cats:['sc','obc','safai','other'],max:5000000,rate:'Bank-linked',moratorium:'As per lender',desc:'Credit-linked subsidy support for establishing new micro-enterprises in manufacturing or service sectors.',tags:['New enterprises','Subsidy support']}
+  ];
+  let eligible = fallbackSchemes.filter(s => s.cats.includes(profile.category) && profile.amount <= s.max);
+  if (!eligible.length) eligible = [fallbackSchemes[2]];
+  eligible = eligible.map(s => ({ ...s, score: 92 })).sort((a, b) => b.score - a.score);
+  
+  document.getElementById('summary').textContent = `Showing options for ${profile.stage === 'new' ? 'a new venture' : 'business growth'} in ${profile.location.split(',')[0]}.`;
+  document.getElementById('schemeList').innerHTML = eligible.map(s => `
+    <article class="scheme">
+      <div class="score">${s.score}%<small>match</small></div>
+      <div>
+        <h3>${s.name}</h3>
+        <p>${s.desc}</p>
+        <div class="pills">${s.tags.map(t => `<span class="pill">${t}</span>`).join('')}<span class="pill">Up to ${money(s.max)}</span></div>
+      </div>
+      <button class="view" onclick="showDetail('${s.id}')">See why it fits</button>
+    </article>`).join('');
+
+  window.current = { profile, eligible };
+  document.getElementById('results').style.display = 'block';
+  generateDocumentChecklist(profile);
+  navigateToStep(2);
+}
+
+// Document Checklist
+let currentDocList = [];
+function generateDocumentChecklist(profile) {
+  currentDocList = [
+    "Voter ID Proof / Government Photo ID",
+    "PAN Card or Form 60 Declaration",
+    "Proof of Address (Utility Bill / Ration Card)",
+    "Passport Size Photographs (4 Copies)",
+    "Bank Account Statement (Last 6 Months)",
+    "Detailed Business Plan / Project Report"
+  ];
+  if (['sc', 'obc', 'safai'].includes(profile.category)) currentDocList.push("Competent Authority Caste / Category Certificate");
+  if (profile.stage === 'existing') currentDocList.push("Existing Business Registration / GST Certificate");
+
+  document.getElementById('docsGrid').innerHTML = currentDocList.map(d => `<div class="doc-item"><span>☑</span><span>${d}</span></div>`).join('');
+}
+
+function downloadDocChecklist() {
+  if (!currentDocList || !currentDocList.length) {
+    alert("Please submit your profile first to generate your custom document checklist.");
+    return;
+  }
+  
+  const content = "UDYAMSETU - REQUIRED SCHEME APPLICATION DOCUMENTS\n" +
+                  "====================================================\n\n" +
+                  "Checklist Items:\n" +
+                  currentDocList.map((doc, idx) => `${idx + 1}. [ ] ${doc}`).join("\n") +
+                  "\n\n====================================================\n" +
+                  "Generated via UdyamSetu Entrepreneur Scheme Navigator";
+
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'UdyamSetu_Document_Checklist.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function showDetail(id) {
+  let s = (window.current.eligible || []).find(x => (x.scheme_id || x.id) === id) || { name: 'Government Scheme', rate: '5-8% p.a.', moratorium: '6 months' };
+  let p = window.current.profile;
+  let annual = id === 'pmegp' ? 9 : 5;
+  let monthly = Math.round(emi(p.amount, annual, 60));
+  let categoryMap = { sc: 'Scheduled Caste', obc: 'OBC', safai: 'Safai Karamchari', other: 'applicant' };
+
+  let d = document.getElementById('detail');
+  d.innerHTML = `
+    <div class="detail-grid">
+      <div>
+        <h3>Why ${s.name} fits your profile</h3>
+        <div class="why">You indicated that you are a <b>${categoryMap[p.category]}</b> entrepreneur seeking <b>${money(p.amount)}</b> for a ${p.stage === 'new' ? 'new' : 'growing'} ${p.business} business.</div>
+        <div class="table">
+          <div class="row"><span>Indicative interest rate</span><span>${s.rate || '5–8% p.a.'}</span></div>
+          <div class="row"><span>Moratorium period</span><span>${s.moratorium || 'Up to 6 months'}</span></div>
+          <div class="row"><span>Estimated monthly repayment*</span><span>${money(monthly)} / month</span></div>
+          <div class="row"><span>Illustration tenure</span><span>60 months</span></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-top:0;font-size:18px">Channelising Partners</h3>
+        <div class="partner"><b>Regional State Channelising Agency</b><span>Near search area · SC/OBC finance</span><span style="color:#087c5b">● Open for enquiries</span></div>
+        <div class="partner"><b>Nationalised Bank Branch</b><span>Near search area · PMEGP partner</span><span style="color:#087c5b">● Open today</span></div>
+      </div>
+    </div>`;
+  d.classList.add('show');
+  d.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Financial Amortization Calculator
+function updateCalculator() {
+  const principal = +loanRange.value, rate = +rateRange.value, months = +tenureRange.value * 12;
+  const monthly = Math.round(emi(principal, rate, months)), total = monthly * months;
+  loanOut.textContent = money(principal);
+  rateOut.textContent = rate.toFixed(1) + '%';
+  tenureOut.textContent = tenureRange.value + ' year' + (tenureRange.value === '1' ? '' : 's');
+  emiOut.textContent = money(monthly);
+  interestOut.textContent = money(total - principal);
+  totalOut.textContent = money(total);
+}
+[loanRange, rateRange, tenureRange].forEach(el => el.addEventListener('input', updateCalculator));
+
+// Leaflet OpenStreetMap Initialization
+let map, markers = [];
+function initMap() {
+  map = L.map('mapContainer').setView([18.5204, 73.8567], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+}
+
+// Fully Dynamic Geocoding & Partner Locator Engine
+async function findPartners() {
+  const scheme = document.getElementById('routeScheme').value;
+  const locationInput = document.getElementById('routeLocation').value || "Pune";
+  
+  try {
+    // 1. Dynamic Geocoding using Nominatim OpenStreetMap API
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}`);
+    const geoData = await geoRes.json();
+
+    let userLat = 18.5204, userLng = 73.8567; // Fallback Pune coordinates
+
+    if (geoData && geoData.length > 0) {
+      userLat = parseFloat(geoData[0].lat);
+      userLng = parseFloat(geoData[0].lon);
+    }
+
+    let partnerData = [];
+
+    // 2. Fetch Spatial Data from MySQL Backend API
+    try {
+      const apiRes = await fetch(`http://localhost:8000/api/partners/nearby?lat=${userLat}&lng=${userLng}&scheme_id=${encodeURIComponent(scheme)}`);
+      const apiData = await apiRes.json();
+      
+      if (apiData.status === 'success' && apiData.partners.length > 0) {
+        partnerData = apiData.partners.map(p => ({
+          name: p.name,
+          lat: p.latitude || userLat + (Math.random() * 0.02 - 0.01),
+          lng: p.longitude || userLng + (Math.random() * 0.02 - 0.01),
+          dist: `${p.distance_km} km`,
+          status: p.status || 'Authorised Partner'
+        }));
+      }
+    } catch (e) {
+      console.warn("Backend API offline. Dynamically generating location-relative markers.");
+    }
+
+    // 3. Fallback dynamic calculation relative to resolved input coordinates
+    if (!partnerData.length) {
+      const cityLabel = locationInput.split(',')[0].trim();
+      partnerData = [
+        { name: `${cityLabel} Facilitation & Development Center`, lat: userLat + 0.012, lng: userLng + 0.015, dist: '1.4 km', status: 'Authorised · Open for enquiries' },
+        { name: `Nationalised Bank – ${cityLabel} Main Branch`, lat: userLat - 0.008, lng: userLng + 0.011, dist: '2.1 km', status: 'Documents accepted today' },
+        { name: `District Industries Centre (${cityLabel})`, lat: userLat + 0.018, lng: userLng - 0.014, dist: '3.8 km', status: 'Appointment recommended' }
+      ];
+    }
+
+    // 4. Render Dynamic Partner Cards
+    document.getElementById('routeList').innerHTML = partnerData.map((p, i) => `
+      <div class="route-card ${i === 0 ? 'selected' : ''}" onclick="focusPartnerOnMap(${p.lat}, ${p.lng}, '${p.name.replace(/'/g, "\\'")}', '${p.dist}')">
+        <b>${p.name}</b><span>${p.dist} · ${p.status}</span>
+      </div>`).join('');
+
+    // 5. Update Map Center and Markers dynamically
+    if (map) {
+      markers.forEach(m => map.removeLayer(m));
+      markers = [];
+
+      map.setView([userLat, userLng], 13);
+      
+      const userMarker = L.marker([userLat, userLng]).addTo(map).bindPopup(`<b>Your Searched Location</b><br>${locationInput}`).openPopup();
+      markers.push(userMarker);
+
+      partnerData.forEach(p => {
+        const m = L.marker([p.lat, p.lng]).addTo(map).bindPopup(`<b>${p.name}</b><br>${p.dist}`);
+        markers.push(m);
+      });
+    }
+
+    focusPartnerOnMap(partnerData[0].lat, partnerData[0].lng, partnerData[0].name, partnerData[0].dist);
+
+  } catch (err) {
+    console.error("Dynamic location lookup error:", err);
+  }
+}
+
+function focusPartnerOnMap(lat, lng, name, dist) {
+  if (map) map.setView([lat, lng], 14);
+  document.getElementById('routeStatus').innerHTML = `<b>Selected Partner:</b> ${name} (${dist}) · Connected via OpenStreetMap live routing.`;
+}
+
+// Window Load Init
+window.onload = () => {
+  updateCalculator();
+  initMap();
+  findPartners();
+};
+</script>
+</body>
+</html>
