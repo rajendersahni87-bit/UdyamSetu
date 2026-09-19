@@ -1,11 +1,17 @@
 // backend/seed.js
 import mysql from 'mysql2/promise';
+const PORT = process.env.PORT || 8000; // Update port logic at the top
 
-const DB_CONFIG = {
-  host: '127.0.0.1',
-  user: 'root',
-  password: '@sksMysql2005' // 👈 Change to your MySQL password
-};
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || '127.0.0.1',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '@sksMysql2005',
+  database: process.env.DB_NAME || 'udyamsetu_db',
+  port: process.env.DB_PORT || 3306,
+  waitForConnections: true,
+  connectionLimit: 10
+});
+
 
 async function seedDB() {
   let connection;

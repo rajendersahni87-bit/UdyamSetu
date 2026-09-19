@@ -3,7 +3,6 @@ import cors from 'cors';
 import mysql from 'mysql2/promise';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
 // 1. Initialize Express FIRST
 const app = express();
 const PORT = 8000;
@@ -25,14 +24,27 @@ app.get('/', (req, res) => {
 });
 
 // MySQL Connection Pool
+
+
+// 1. Base config using environment variables (used for initial connection)
+const DB_CONFIG = {
+  host: process.env.DB_HOST || '127.0.0.1',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '@sksMysql2005',
+  port: process.env.DB_PORT || 3306
+};
+
+const DB_NAME = process.env.DB_NAME || 'udyamsetu_db';
+
+// 2. Pool config for querying the specific database
 const pool = mysql.createPool({
-  host: '127.0.0.1',
-  user: 'root',
-  password: '@sksMysql2005', // 👈 Update with your MySQL root password
-  database: 'udyamsetu_db',
+  ...DB_CONFIG,
+  database: DB_NAME,
   waitForConnections: true,
   connectionLimit: 10
 });
+
+// Leave the rest of your seed.js functions below this...
 
 // Utility: Calculate EMI
 function calculateEMI(principal, annualRate, months) {
