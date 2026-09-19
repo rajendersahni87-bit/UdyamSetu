@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'mysql-2ba7f8d0-rajendersahni87-d29c.c.aivencloud.com',
   user: process.env.DB_USER || 'avnadmin',
-  password: process.env.DB_PASSWORD || 'AVNS_CAq-P3zHbLVvWBkZ40o',
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME || 'defaultdb',
   port: process.env.DB_PORT || 21559,
   ssl: {

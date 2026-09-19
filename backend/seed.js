@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 8000;
 const DB_CONFIG = {
   host: process.env.DB_HOST || 'mysql-2ba7f8d0-rajendersahni87-d29c.c.aivencloud.com',
   user: process.env.DB_USER || 'avnadmin',
-  password: process.env.DB_PASSWORD || 'AVNS_CAq-P3zHbLVvWBkZ40o',
+  password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 21559,
   ssl: {
     rejectUnauthorized: false
